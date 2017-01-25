@@ -3246,12 +3246,14 @@ angular.module('textAngular.taBind', ['textAngular.factories', 'textAngular.DOM'
                     var _processingPaste = false;
                     /* istanbul ignore next: phantom js cannot test this for some reason */
                     var processpaste = function(text) {
+                       var isWordPaste = false;
                        var _isOneNote = text!==undefined? text.match(/content=["']*OneNote.File/i): false;
                         /* istanbul ignore else: don't care if nothing pasted */
                         //console.log(text);
                         if(text && text.trim().length){
                             // test paste from word/microsoft product
                             if(text.match(/class=["']*Mso(Normal|List)/i) || text.match(/content=["']*Word.Document/i) || text.match(/content=["']*OneNote.File/i)){
+                                isWordPaste = true;
                                 var textFragment = text.match(/<!--StartFragment-->([\s\S]*?)<!--EndFragment-->/i);
                                 if(!textFragment) textFragment = text;
                                 else textFragment = textFragment[1];
@@ -3291,7 +3293,8 @@ angular.module('textAngular.taBind', ['textAngular.factories', 'textAngular.DOM'
                                             tagName !== 'h4' &&
                                             tagName !== 'h5' &&
                                             tagName !== 'h6' &&
-                                            tagName !== 'table'){
+                                            tagName !== 'table' &&
+                                            tagName !== 'span'){
                                             continue;
                                         }
                                     }
@@ -3405,7 +3408,15 @@ angular.module('textAngular.taBind', ['textAngular.factories', 'textAngular.DOM'
                                     result += '&nbsp;';
                                 }
                                 return result;
-                            }).replace(/\n|\r\n|\r/g, '<br />').replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;');
+                            });
+
+                            if (isWordPaste) {
+                                text = text.replace(/\n|\r\n|\r/g, ' ');
+                            }
+                            else {
+                                text = text.replace(/\n|\r\n|\r/g, '<br />');
+                            }
+                            text = text.replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;');
 
                             if(_pasteHandler) text = _pasteHandler(scope, {$html: text}) || text;
 
